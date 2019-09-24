@@ -55,6 +55,7 @@ public final class YieldingWaitStrategy implements WaitStrategy
 
         if (0 == counter)
         {
+            //线程切换，不断切换
             Thread.yield();
         }
         else

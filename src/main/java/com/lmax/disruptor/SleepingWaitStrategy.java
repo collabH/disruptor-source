@@ -30,10 +30,22 @@ import java.util.concurrent.locks.LockSupport;
  */
 public final class SleepingWaitStrategy implements WaitStrategy
 {
+    /**
+     * 默认重试次数
+     */
     private static final int DEFAULT_RETRIES = 200;
+    /**
+     * 默认睡眠时间 100Ns
+     */
     private static final long DEFAULT_SLEEP = 100;
 
+    /**
+     * 重试次数
+     */
     private final int retries;
+    /**
+     * 睡眠时间Ns
+     */
     private final long sleepTimeNs;
 
     public SleepingWaitStrategy()
@@ -73,6 +85,13 @@ public final class SleepingWaitStrategy implements WaitStrategy
     {
     }
 
+    /**
+     * 引用等待方法
+     * @param barrier 序号栅栏
+     * @param counter 计数器
+     * @return
+     * @throws AlertException
+     */
     private int applyWaitMethod(final SequenceBarrier barrier, int counter)
         throws AlertException
     {
