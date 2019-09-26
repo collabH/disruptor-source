@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
+ * 核心事件循环处理器
  * Convenience class for handling the batching semantics of consuming entries from a {@link RingBuffer}
  * and delegating the available events to an {@link EventHandler}.
  * <p>
@@ -117,6 +118,7 @@ public final class BatchEventProcessor<T>
         {
             sequenceBarrier.clearAlert();
 
+            //通知启动
             notifyStart();
             try
             {

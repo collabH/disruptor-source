@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class WorkerPool<T>
 {
     private final AtomicBoolean started = new AtomicBoolean(false);
+    //默认-1
     private final Sequence workSequence = new Sequence(Sequencer.INITIAL_CURSOR_VALUE);
     private final RingBuffer<T> ringBuffer;
     // WorkProcessors are created to wrap each of the provided WorkHandlers
@@ -53,11 +54,14 @@ public final class WorkerPool<T>
         final WorkHandler<? super T>... workHandlers)
     {
         this.ringBuffer = ringBuffer;
+        //workHandler消费者的数量
         final int numWorkers = workHandlers.length;
+        //有多少个消费者就有多少个workProcessors
         workProcessors = new WorkProcessor[numWorkers];
 
         for (int i = 0; i < numWorkers; i++)
         {
+            //设置配置
             workProcessors[i] = new WorkProcessor<>(
                 ringBuffer,
                 sequenceBarrier,

@@ -393,6 +393,7 @@ public class Disruptor<T>
     public RingBuffer<T> start()
     {
         checkOnlyStartedOnce();
+        //循环启动消费者
         for (final ConsumerInfo consumerInfo : consumerRepository)
         {
             consumerInfo.start(executor);

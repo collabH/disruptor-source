@@ -72,6 +72,10 @@ class EventProcessorInfo<T> implements ConsumerInfo
         return endOfChain;
     }
 
+    /**
+     * 执行eventprocessor
+     * @param executor
+     */
     @Override
     public void start(final Executor executor)
     {
