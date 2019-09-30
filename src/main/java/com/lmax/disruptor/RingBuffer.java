@@ -21,11 +21,18 @@ import sun.misc.Unsafe;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.lmax.disruptor.util.Util;
 
+/**
+ * 用于缓存行填充消除伪共享
+ */
 abstract class RingBufferPad
 {
     protected long p1, p2, p3, p4, p5, p6, p7;
 }
 
+/**
+ * event在数组中的存储位置
+ * @param <E>
+ */
 abstract class RingBufferFields<E> extends RingBufferPad
 {
     private static final int BUFFER_PAD;
@@ -54,8 +61,14 @@ abstract class RingBufferFields<E> extends RingBufferPad
     }
 
     private final long indexMask;
+    /**
+     * 底层数据结构，环状结构、数组
+     */
     private final Object[] entries;
     protected final int bufferSize;
+    /**
+     * 外部传递引用
+     */
     protected final Sequencer sequencer;
 
     RingBufferFields(
@@ -75,14 +88,21 @@ abstract class RingBufferFields<E> extends RingBufferPad
         }
 
         this.indexMask = bufferSize - 1;
+        //设置容量
         this.entries = new Object[sequencer.getBufferSize() + 2 * BUFFER_PAD];
+        //内存的预加载
         fill(eventFactory);
     }
 
+    /**
+     * 内存预加载机制核心实现
+     * @param eventFactory {@link EventFactory<E>}
+     */
     private void fill(EventFactory<E> eventFactory)
     {
         for (int i = 0; i < bufferSize; i++)
         {
+            //将entries数组中填充一个event空对象
             entries[BUFFER_PAD + i] = eventFactory.newInstance();
         }
     }
@@ -135,6 +155,7 @@ public final class RingBuffer<E> extends RingBufferFields<E> implements Cursored
         int bufferSize,
         WaitStrategy waitStrategy)
     {
+        //使用multiProducerSequencer
         MultiProducerSequencer sequencer = new MultiProducerSequencer(bufferSize, waitStrategy);
 
         return new RingBuffer<E>(factory, sequencer);
@@ -171,6 +192,7 @@ public final class RingBuffer<E> extends RingBufferFields<E> implements Cursored
         int bufferSize,
         WaitStrategy waitStrategy)
     {
+        //使用singleProducerSequencer
         SingleProducerSequencer sequencer = new SingleProducerSequencer(bufferSize, waitStrategy);
 
         return new RingBuffer<E>(factory, sequencer);

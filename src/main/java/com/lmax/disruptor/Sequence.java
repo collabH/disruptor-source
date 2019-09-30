@@ -19,17 +19,27 @@ import sun.misc.Unsafe;
 
 import com.lmax.disruptor.util.Util;
 
-
+/**
+ * 左边，在左边填充7个long类型，占7*8=56字节
+ */
 class LhsPadding
 {
     protected long p1, p2, p3, p4, p5, p6, p7;
 }
 
+/**
+ * value就永远占用一个缓存行，因为最常见的缓存行大小为64个字节
+ * 因此value左边+56个字节，在右边也加入56个字节，这样无论是左边还是右边最终都可以保证这个缓存行占64个字节，
+ * 这样就可以消除伪共享(false shard)问题
+ */
 class Value extends LhsPadding
 {
     protected volatile long value;
 }
 
+/**
+ * 右边，在右边填充7个long类型，占7*8=56字节
+ */
 class RhsPadding extends Value
 {
     protected long p9, p10, p11, p12, p13, p14, p15;
