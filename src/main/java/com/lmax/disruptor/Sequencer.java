@@ -45,6 +45,7 @@ public interface Sequencer extends Cursored, Sequenced
      * Add the specified gating sequences to this instance of the Disruptor.  They will
      * safely and atomically added to the list of gating sequences.
      *
+     * 将指定的门控序列添加到干扰器的此实例中。他们将安全原子地添加到门控序列列表。
      * @param gatingSequences The sequences to add.
      */
     void addGatingSequences(Sequence... gatingSequences);

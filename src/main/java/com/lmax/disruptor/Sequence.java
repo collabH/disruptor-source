@@ -122,6 +122,7 @@ public class Sequence extends RhsPadding
      */
     public void setVolatile(final long value)
     {
+        //设置一个内存屏障
         UNSAFE.putLongVolatile(this, VALUE_OFFSET, value);
     }
 

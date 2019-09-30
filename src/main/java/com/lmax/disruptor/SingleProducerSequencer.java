@@ -19,6 +19,9 @@ import java.util.concurrent.locks.LockSupport;
 
 import com.lmax.disruptor.util.Util;
 
+/**
+ * 填充缓存行，消除伪共享
+ */
 abstract class SingleProducerSequencerPad extends AbstractSequencer
 {
     protected long p1, p2, p3, p4, p5, p6, p7;
@@ -38,8 +41,10 @@ abstract class SingleProducerSequencerFields extends SingleProducerSequencerPad
 
     /**
      * Set to -1 as sequence starting point
+     * 初始值-1 nextValue
      */
     long nextValue = Sequence.INITIAL_VALUE;
+    //缓存值
     long cachedValue = Sequence.INITIAL_VALUE;
 }
 
@@ -50,7 +55,9 @@ abstract class SingleProducerSequencerFields extends SingleProducerSequencerPad
  * <p>* Note on {@link Sequencer#getCursor()}:  With this sequencer the cursor value is updated after the call
  * to {@link Sequencer#publish(long)} is made.</p>
  */
-
+/**
+ * 填充缓存行，消除伪共享
+ */
 public final class SingleProducerSequencer extends SingleProducerSequencerFields
 {
     protected long p1, p2, p3, p4, p5, p6, p7;
@@ -112,34 +119,48 @@ public final class SingleProducerSequencer extends SingleProducerSequencerFields
 
     /**
      * @see Sequencer#next(int)
+     * n要声明的序列数
      */
     @Override
     public long next(int n)
     {
+        //如果n<1或者n小于缓存大小 sequence的初始值为-1=-1+1=0
         if (n < 1 || n > bufferSize)
         {
             throw new IllegalArgumentException("n must be > 0 and < bufferSize");
         }
 
+        //语义级别 当前sequence值 nextValue为SingleProducerSequencer的变量
         long nextValue = this.nextValue;
 
+        //得到下一个sequence值，-1+n
         long nextSequence = nextValue + n;
+        //得到wrapPoint -1+n-bufferSize  判断生产者序号是否绕过整个ringBuffer的环，如果为负数代表没有绕过这个环
         long wrapPoint = nextSequence - bufferSize;
+        //这个cachedGatingSequence目的就是不要每次都去进行获取消费者的最小序号，用一个缓存去进行接受，目的是为了防止每次都需要去获取最小消费者
         long cachedGatingSequence = this.cachedValue;
-
+        //消费者序号数值必须小于其前置(依赖关系)消费者的序号数值
         if (wrapPoint > cachedGatingSequence || cachedGatingSequence > nextValue)
         {
+            //StoreLoad栅栏 设置写的内存屏障对于nextValue，保证在多线程中他是可见的并且循序不变
             cursor.setVolatile(nextValue);  // StoreLoad fence
-
+            //最小的消费者序号
             long minSequence;
+            /**
+             *  自旋操作
+             *  Util.getMinimumSequence(gatingSequences, nextValue))从消费者中找到最小的序号值
+             *  从gatingSequences中找到最小值，并且复制给nextValue
+             *  如果你的生产者序号 大于 消费者中最小的序号 那么 你就挂起自旋
+             */
             while (wrapPoint > (minSequence = Util.getMinimumSequence(gatingSequences, nextValue)))
             {
                 LockSupport.parkNanos(1L); // TODO: Use waitStrategy to spin?
             }
-
+            //最小的消费者序号复制给缓存序号，用于下一次比较 为了：消费者序号数值必须小于其前置(依赖关系)消费者的序号数值
+            //为了防止每次都需要Util.getMinimumSequence(gatingSequences, nextValue)，优化比较
             this.cachedValue = minSequence;
         }
-
+        //下一个消费序号赋值
         this.nextValue = nextSequence;
 
         return nextSequence;

@@ -53,7 +53,7 @@ public final class Util
 
     /**
      * Get the minimum sequence from an array of {@link com.lmax.disruptor.Sequence}s.
-     *
+     * 得到最小序列号在一个序号数组中
      * @param sequences to compare.
      * @param minimum   an initial default minimum.  If the array is empty this value will be
      *                  returned.

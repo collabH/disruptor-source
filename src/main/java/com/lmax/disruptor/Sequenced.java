@@ -27,7 +27,7 @@ public interface Sequenced
 
     /**
      * Claim the next event in sequence for publishing.
-     *
+     * 按顺序声明下一个事件以便发布。
      * @return the claimed sequence value
      */
     long next();
@@ -35,6 +35,8 @@ public interface Sequenced
     /**
      * Claim the next n events in sequence for publishing.  This is for batch event producing.  Using batch producing
      * requires a little care and some math.
+     * 声明接下来要发布的n个事件。这是用于批量事件生成的。使用批量生产
+     * 需要一点细心和一些数学。
      * <pre>
      * int n = 10;
      * long hi = sequencer.next(n);
@@ -45,7 +47,7 @@ public interface Sequenced
      * sequencer.publish(lo, hi);
      * </pre>
      *
-     * @param n the number of sequences to claim
+     * @param n the number of sequences to claim n要声明的序列数
      * @return the highest claimed sequence value
      */
     long next(int n);
