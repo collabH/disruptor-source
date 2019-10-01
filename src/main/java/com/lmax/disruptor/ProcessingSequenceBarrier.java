@@ -49,13 +49,14 @@ final class ProcessingSequenceBarrier implements SequenceBarrier
     }
 
     @Override
-    public long waitFor(final long sequence)
+    public long waitFor(final long sequence)//10
         throws AlertException, InterruptedException, TimeoutException
     {
+        //校验是否被打断
         checkAlert();
 
         /**
-         * sequence:等待的序号
+         * sequence:等待的序号 下一个消费者需要的序号 10
          * cursorSequence:游标序号
          * dependentSequence:消费者序号
          * this:这个栅栏
@@ -87,7 +88,9 @@ final class ProcessingSequenceBarrier implements SequenceBarrier
     @Override
     public void alert()
     {
+        //告警为true
         alerted = true;
+        //通知阻塞状态执行
         waitStrategy.signalAllWhenBlocking();
     }
 

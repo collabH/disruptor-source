@@ -22,29 +22,43 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 核心事件循环处理器
  * Convenience class for handling the batching semantics of consuming entries from a {@link RingBuffer}
  * and delegating the available events to an {@link EventHandler}.
+ * 处理从{@link RingBuffer}消费条目的批处理语义的便利类并将可用事件委托给{@link EventHandler}。
  * <p>
  * If the {@link EventHandler} also implements {@link LifecycleAware} it will be notified just after the thread
  * is started and just before the thread is shutdown.
- *
+ *如果{@link EventHandler}也实现了{@link LifecycleAware}，它将在线程结束后被通知在线程关闭之前启动。
  * @param <T> event implementation storing the data for sharing during exchange or parallel coordination of an event.
+ * 事件实现存储数据，以便在交换或事件的并行协调期间进行共享。
  */
 public final class BatchEventProcessor<T>
     implements EventProcessor
 {
+    //空闲状态 0
     private static final int IDLE = 0;
+    //停止状态 1
     private static final int HALTED = IDLE + 1;
+    //允许状态 2
     private static final int RUNNING = HALTED + 1;
 
+    //是否运行状态，默认为闲置
     private final AtomicInteger running = new AtomicInteger(IDLE);
+    //异常处理器
     private ExceptionHandler<? super T> exceptionHandler = new FatalExceptionHandler();
+    //存储真实数据
     private final DataProvider<T> dataProvider;
+    //序号栅栏，维护生产者和消费者进度的协调类
     private final SequenceBarrier sequenceBarrier;
+    //消费者接口实现
     private final EventHandler<? super T> eventHandler;
+    //ringBuffer真实的有效的最大的序号
     private final Sequence sequence = new Sequence(Sequencer.INITIAL_CURSOR_VALUE);
+    //超时处理器
     private final TimeoutHandler timeoutHandler;
+    //批处理
     private final BatchStartAware batchStartAware;
 
     /**
+     * 构造一个事件处理器，它将通过更新它的序列来自动跟踪进程{@link EventHandler#onEvent(Object, long, boolean)}方法返回
      * Construct a {@link EventProcessor} that will automatically track the progress by updating its sequence when
      * the {@link EventHandler#onEvent(Object, long, boolean)} method returns.
      *
@@ -61,8 +75,10 @@ public final class BatchEventProcessor<T>
         this.sequenceBarrier = sequenceBarrier;
         this.eventHandler = eventHandler;
 
+        //如果消费者接口实现是SequenceReportingEventHandler类，用于设置回调
         if (eventHandler instanceof SequenceReportingEventHandler)
         {
+            //设置回调，为了通知BatchEventProcessor该序号已经被处理类
             ((SequenceReportingEventHandler<?>) eventHandler).setSequenceCallback(sequence);
         }
 
@@ -81,7 +97,9 @@ public final class BatchEventProcessor<T>
     @Override
     public void halt()
     {
+        //设置停止状态
         running.set(HALTED);
+        //告诉事件处理器状态的变化，并保持此状态直到清除。
         sequenceBarrier.alert();
     }
 
@@ -165,8 +183,9 @@ public final class BatchEventProcessor<T>
      */
     private void processEvents()
     {
+        //用于接受实际的对象
         T event = null;
-        //得到下一个序号为当先序号+1
+        //得到下一个序号为当先序号+1，消费者需要
         long nextSequence = sequence.get() + 1L;
 
         //自旋
@@ -174,7 +193,7 @@ public final class BatchEventProcessor<T>
         {
             try
             {
-                //执行等待策略
+                //执行等待策略，得到真实可用序号
                 final long availableSequence = sequenceBarrier.waitFor(nextSequence);
                 //如果可用序号大于等于下一个序号或者batchStartAware不为null
                 if (batchStartAware != null && availableSequence >= nextSequence)
@@ -182,14 +201,17 @@ public final class BatchEventProcessor<T>
                     //启动批量
                     batchStartAware.onBatchStart(availableSequence - nextSequence + 1);
                 }
-
+                //生产者的投递速度大于消费速度，真实的最大序号，下一个消费者消费的序号
                 while (nextSequence <= availableSequence)
                 {
+                    //得到具体的消费者
                     event = dataProvider.get(nextSequence);
+                    //执行执行
                     eventHandler.onEvent(event, nextSequence, nextSequence == availableSequence);
+                    //然后一直循环直到大于真实的最大序号
                     nextSequence++;
                 }
-
+                //设置当前ringBuffer最大的序号
                 sequence.set(availableSequence);
             }
             catch (final TimeoutException e)

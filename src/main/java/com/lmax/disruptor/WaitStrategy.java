@@ -32,8 +32,8 @@ public interface WaitStrategy
      * 等待给定的序列可用。此方法可以返回一个值根据等待策略的实现，小于提供的序列号。一个共同的用来表示超时。任何使用等待策略来获取通知的事件处理器
      * 关于消息可用应记住处理这种情况。显式地使用{@link BatchEventProcessor}处理此情况，并将信号超时，如果需要。
      *
-     * @param sequence          to be waited on.
-     * @param cursor            the main sequence from ringbuffer. Wait/notify strategies will
+     * @param sequence          to be waited on. 消费者下一个想要得到的序号
+     * @param cursor            the main sequence from ringbuffer. Wait/notify strategies will 当前ringBuffer中最大的序号值
      *                          need this as it's the only sequence that is also notified upon update.
      * @param dependentSequence on which to wait.
      * @param barrier           the processor is waiting on.

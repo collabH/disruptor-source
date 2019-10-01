@@ -35,7 +35,8 @@ public final class BlockingWaitStrategy implements WaitStrategy
     {
         //可用的序号
         long availableSequence;
-        //生产者序号小于消费者序号时，消费者消费速度大于生产者投递速度
+        //当前最大生产者序号小于下一个消费者序号时，消费者消费速度大于生产者投递速度
+        //9<10
         if (cursorSequence.get() < sequence)
         {
             //获取锁

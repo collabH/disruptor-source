@@ -21,9 +21,11 @@ import java.util.logging.Logger;
 /**
  * Convenience implementation of an exception handler that using standard JDK logging to log
  * the exception as {@link Level}.SEVERE and re-throw it wrapped in a {@link RuntimeException}
+ * 使用标准JDK日志记录的异常处理程序的方便实现异常为{@link Level}。严重并重新抛出它包装在{@link RuntimeException}
  */
 public final class FatalExceptionHandler implements ExceptionHandler<Object>
 {
+    //jdk日志类
     private static final Logger LOGGER = Logger.getLogger(FatalExceptionHandler.class.getName());
     private final Logger logger;
 
@@ -40,6 +42,7 @@ public final class FatalExceptionHandler implements ExceptionHandler<Object>
     @Override
     public void handleEventException(final Throwable ex, final long sequence, final Object event)
     {
+        //打印日志处理时间异常
         logger.log(Level.SEVERE, "Exception processing: " + sequence + " " + event, ex);
 
         throw new RuntimeException(ex);
@@ -48,12 +51,14 @@ public final class FatalExceptionHandler implements ExceptionHandler<Object>
     @Override
     public void handleOnStartException(final Throwable ex)
     {
+        //启动异常
         logger.log(Level.SEVERE, "Exception during onStart()", ex);
     }
 
     @Override
     public void handleOnShutdownException(final Throwable ex)
     {
+        //关闭异常
         logger.log(Level.SEVERE, "Exception during onShutdown()", ex);
     }
 }
