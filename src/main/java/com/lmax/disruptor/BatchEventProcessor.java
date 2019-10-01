@@ -114,22 +114,28 @@ public final class BatchEventProcessor<T>
     @Override
     public void run()
     {
+        //cas的方式去启动
         if (running.compareAndSet(IDLE, RUNNING))
         {
+            //清除当前警报状态。
             sequenceBarrier.clearAlert();
 
             //通知启动
             notifyStart();
             try
             {
+                //如果是执行状态
                 if (running.get() == RUNNING)
                 {
+                    //执行实现集合
                     processEvents();
                 }
             }
             finally
             {
+                //最后通知关闭
                 notifyShutdown();
+                //运行状态设置为空闲
                 running.set(IDLE);
             }
         }
@@ -138,29 +144,42 @@ public final class BatchEventProcessor<T>
             // This is a little bit of guess work.  The running state could of changed to HALTED by
             // this point.  However, Java does not have compareAndExchange which is the only way
             // to get it exactly correct.
+
+            //这是一个小小的猜测。运行状态可以改为暂停
+            //这一点。然而，Java没有compareAndExchange，这是唯一的方法
+            //使它完全正确。
             if (running.get() == RUNNING)
             {
                 throw new IllegalStateException("Thread is already running");
             }
             else
             {
+                //更早的退出
                 earlyExit();
             }
         }
     }
 
+    /**
+     * 执行事件
+     */
     private void processEvents()
     {
         T event = null;
+        //得到下一个序号为当先序号+1
         long nextSequence = sequence.get() + 1L;
 
+        //自旋
         while (true)
         {
             try
             {
+                //执行等待策略
                 final long availableSequence = sequenceBarrier.waitFor(nextSequence);
+                //如果可用序号大于等于下一个序号或者batchStartAware不为null
                 if (batchStartAware != null && availableSequence >= nextSequence)
                 {
+                    //启动批量
                     batchStartAware.onBatchStart(availableSequence - nextSequence + 1);
                 }
 
@@ -177,8 +196,10 @@ public final class BatchEventProcessor<T>
             {
                 notifyTimeout(sequence.get());
             }
+            //配合等待策略中的告警打断线程
             catch (final AlertException ex)
             {
+                //如果真的停止允许就break掉
                 if (running.get() != RUNNING)
                 {
                     break;
@@ -216,17 +237,21 @@ public final class BatchEventProcessor<T>
 
     /**
      * Notifies the EventHandler when this processor is starting up
+     * 在处理器启动是通知EventHandler
      */
     private void notifyStart()
     {
+        //如果eventHandler类型为LifecycleAware
         if (eventHandler instanceof LifecycleAware)
         {
             try
             {
+                //启动
                 ((LifecycleAware) eventHandler).onStart();
             }
             catch (final Throwable ex)
             {
+                //异常处理器处理启动异常
                 exceptionHandler.handleOnStartException(ex);
             }
         }

@@ -24,6 +24,7 @@ final class ProcessingSequenceBarrier implements SequenceBarrier
 {
     private final WaitStrategy waitStrategy;
     private final Sequence dependentSequence;
+    //用于打断唤醒
     private volatile boolean alerted = false;
     private final Sequence cursorSequence;
     private final Sequencer sequencer;
@@ -53,13 +54,21 @@ final class ProcessingSequenceBarrier implements SequenceBarrier
     {
         checkAlert();
 
+        /**
+         * sequence:等待的序号
+         * cursorSequence:游标序号
+         * dependentSequence:消费者序号
+         * this:这个栅栏
+         */
         long availableSequence = waitStrategy.waitFor(sequence, cursorSequence, dependentSequence, this);
 
+        //可用序号如果小于等待序号
         if (availableSequence < sequence)
         {
+            //返回可用序号
             return availableSequence;
         }
-
+        //否则返回最高的发布序号，实际上还是返回availableSequence
         return sequencer.getHighestPublishedSequence(sequence, availableSequence);
     }
 

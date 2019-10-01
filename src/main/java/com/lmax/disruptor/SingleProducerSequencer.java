@@ -224,7 +224,9 @@ public final class SingleProducerSequencer extends SingleProducerSequencerFields
     @Override
     public void publish(long sequence)
     {
+        //设置ringBuffer游标
         cursor.set(sequence);
+        //通知全部阻塞的消费者
         waitStrategy.signalAllWhenBlocking();
     }
 

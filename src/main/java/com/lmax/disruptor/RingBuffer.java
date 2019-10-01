@@ -887,7 +887,7 @@ public final class RingBuffer<E> extends RingBufferFields<E> implements Cursored
     /**
      * Publish the specified sequence.  This action marks this particular
      * message as being available to be read.
-     *
+     *发布指定的序列。这个动作标志着这一点可供阅读的信息。
      * @param sequence the sequence to publish.
      */
     @Override

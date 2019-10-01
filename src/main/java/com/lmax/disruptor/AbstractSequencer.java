@@ -32,8 +32,9 @@ public abstract class AbstractSequencer implements Sequencer
 
     protected final int bufferSize;
     protected final WaitStrategy waitStrategy;
+    //游标默认值-1，实际ringBuffer的游标
     protected final Sequence cursor = new Sequence(Sequencer.INITIAL_CURSOR_VALUE);
-    //优化的序列号数组
+    //待消费的序号值
     protected volatile Sequence[] gatingSequences = new Sequence[0];
 
     /**

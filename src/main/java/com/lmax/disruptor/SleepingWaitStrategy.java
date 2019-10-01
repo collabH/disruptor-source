@@ -22,11 +22,17 @@ import java.util.concurrent.locks.LockSupport;
  * eventually sleep (<code>LockSupport.parkNanos(n)</code>) for the minimum
  * number of nanos the OS and JVM will allow while the
  * {@link com.lmax.disruptor.EventProcessor}s are waiting on a barrier.
+ * 开始旋转，然后使用Thread.yield()和的睡眠策略
+ * 最终睡眠(<code>LockSupport.parkNanos(n)</code>)为最小
+ * 操作系统和JVM将允许的nano数量
+ * {@link com.lmax.disruptor。事件处理器正在等待一个屏障。
  * <p>
  * This strategy is a good compromise between performance and CPU resource.
  * Latency spikes can occur after quiet periods.  It will also reduce the impact
  * on the producing thread as it will not need signal any conditional variables
  * to wake up the event handling thread.
+ * 这种策略是性能和CPU资源之间的一种很好的折衷。
+ * 潜伏期峰值可以在安静期之后出现。它也将减少影响，因为它不需要任何条件变量的信号唤醒事件处理线程。
  */
 public final class SleepingWaitStrategy implements WaitStrategy
 {
