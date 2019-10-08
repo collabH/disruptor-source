@@ -18,6 +18,7 @@ package com.lmax.disruptor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * 多消费者处理同一批事件
  * <p>A {@link WorkProcessor} wraps a single {@link WorkHandler}, effectively consuming the sequence
  * and ensuring appropriate barriers.</p>
  *

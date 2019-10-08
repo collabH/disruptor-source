@@ -21,28 +21,49 @@ import java.util.*;
 
 /**
  * Provides a repository mechanism to associate {@link EventHandler}s with {@link EventProcessor}s
- *
+ * 提供一个存储库机制来将{@link EventHandler}和{@link EventProcessor}关联起来
  * @param <T> the type of the {@link EventHandler}
  */
 class ConsumerRepository<T> implements Iterable<ConsumerInfo>
 {
+    /**
+     * 事件处理器实现类集合
+     */
     private final Map<EventHandler<?>, EventProcessorInfo<T>> eventProcessorInfoByEventHandler =
         new IdentityHashMap<>();
+    /**
+     * 事件处理器接口集合
+     */
     private final Map<Sequence, ConsumerInfo> eventProcessorInfoBySequence =
         new IdentityHashMap<>();
+    /**
+     * 消费者集合
+     */
     private final Collection<ConsumerInfo> consumerInfos = new ArrayList<>();
 
+    /**
+     * 添加到集合中
+     * @param eventprocessor 事件处理器
+     * @param handler  消费者
+     * @param barrier 序号栅栏
+     */
     public void add(
         final EventProcessor eventprocessor,
         final EventHandler<? super T> handler,
         final SequenceBarrier barrier)
     {
+        //得到事件处理实现类
         final EventProcessorInfo<T> consumerInfo = new EventProcessorInfo<>(eventprocessor, handler, barrier);
+        //添加数组到集合
         eventProcessorInfoByEventHandler.put(handler, consumerInfo);
         eventProcessorInfoBySequence.put(eventprocessor.getSequence(), consumerInfo);
         consumerInfos.add(consumerInfo);
     }
 
+    /**
+     * 添加事件处理器到eventProcessorInfoBySequence、consumerInfos中
+     * @param processor
+     */
     public void add(final EventProcessor processor)
     {
         final EventProcessorInfo<T> consumerInfo = new EventProcessorInfo<>(processor, null, null);
@@ -50,6 +71,11 @@ class ConsumerRepository<T> implements Iterable<ConsumerInfo>
         consumerInfos.add(consumerInfo);
     }
 
+    /**
+     * 多生产多消费者模型
+     * @param workerPool
+     * @param sequenceBarrier
+     */
     public void add(final WorkerPool<T> workerPool, final SequenceBarrier sequenceBarrier)
     {
         final WorkerPoolInfo<T> workerPoolInfo = new WorkerPoolInfo<>(workerPool, sequenceBarrier);
@@ -60,6 +86,12 @@ class ConsumerRepository<T> implements Iterable<ConsumerInfo>
         }
     }
 
+    /**
+     * 是否还有没有消费的消息
+     * @param cursor
+     * @param includeStopped
+     * @return
+     */
     public boolean hasBacklog(long cursor, boolean includeStopped)
     {
         for (ConsumerInfo consumerInfo : consumerInfos)
@@ -100,6 +132,11 @@ class ConsumerRepository<T> implements Iterable<ConsumerInfo>
         return lastSequence.toArray(new Sequence[lastSequence.size()]);
     }
 
+    /**
+     * 根据消费者得到事件处理器
+     * @param handler
+     * @return
+     */
     public EventProcessor getEventProcessorFor(final EventHandler<T> handler)
     {
         final EventProcessorInfo<T> eventprocessorInfo = getEventProcessorInfo(handler);
@@ -116,6 +153,11 @@ class ConsumerRepository<T> implements Iterable<ConsumerInfo>
         return getEventProcessorFor(handler).getSequence();
     }
 
+
+    /**
+     * 将事件处理器标记为链的末端
+     * @param barrierEventProcessors
+     */
     public void unMarkEventProcessorsAsEndOfChain(final Sequence... barrierEventProcessors)
     {
         for (Sequence barrierEventProcessor : barrierEventProcessors)
@@ -136,6 +178,11 @@ class ConsumerRepository<T> implements Iterable<ConsumerInfo>
         return consumerInfo != null ? consumerInfo.getBarrier() : null;
     }
 
+    /**
+     * 从集合中得到处理器信息
+     * @param handler
+     * @return
+     */
     private EventProcessorInfo<T> getEventProcessorInfo(final EventHandler<T> handler)
     {
         return eventProcessorInfoByEventHandler.get(handler);

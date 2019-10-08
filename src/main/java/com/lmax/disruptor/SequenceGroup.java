@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import com.lmax.disruptor.util.Util;
 
 /**
+ * 一个Sequence组，可以在线程安全的情况下动态添加和删除Sequence
  * A {@link Sequence} group that can dynamically have {@link Sequence}s added and removed while being
  * thread safe.
  * <p>

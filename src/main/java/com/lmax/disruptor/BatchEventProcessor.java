@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 核心事件循环处理器
+ * 单消费者处理同一批事件
  * Convenience class for handling the batching semantics of consuming entries from a {@link RingBuffer}
  * and delegating the available events to an {@link EventHandler}.
  * 处理从{@link RingBuffer}消费条目的批处理语义的便利类并将可用事件委托给{@link EventHandler}。

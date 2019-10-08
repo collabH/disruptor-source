@@ -15,6 +15,10 @@
  */
 package com.lmax.disruptor;
 
+/**
+ * 根据序列获取相应的对象。用于填充数据和消费
+ * @param <T>
+ */
 public interface DataProvider<T>
 {
     /**

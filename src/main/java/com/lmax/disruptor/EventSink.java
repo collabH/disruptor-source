@@ -1,5 +1,9 @@
 package com.lmax.disruptor;
 
+/**
+ * 定义了事件发布功能
+ * @param <E>
+ */
 public interface EventSink<E>
 {
     /**

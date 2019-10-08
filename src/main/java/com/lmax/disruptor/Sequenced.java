@@ -1,10 +1,13 @@
 package com.lmax.disruptor;
 
+/**
+ * 生产者使用，申请序列，发布序列
+ */
 public interface Sequenced
 {
     /**
      * The capacity of the data structure to hold entries.
-     *
+     * 数据结构容纳条目的能力。
      * @return the size of the RingBuffer.
      */
     int getBufferSize();
@@ -20,7 +23,7 @@ public interface Sequenced
 
     /**
      * Get the remaining capacity for this sequencer.
-     *
+     * 得到剩下的容量
      * @return The number of slots remaining.
      */
     long remainingCapacity();

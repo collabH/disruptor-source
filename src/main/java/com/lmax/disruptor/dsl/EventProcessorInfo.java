@@ -23,17 +23,31 @@ import com.lmax.disruptor.SequenceBarrier;
 import java.util.concurrent.Executor;
 
 /**
+ * 将特定事件处理阶段绑定在一起的包装器类
  * <p>Wrapper class to tie together a particular event processing stage</p>
  * <p>
+ *  跟踪事件处理器实例、事件处理程序实例和附加到舞台上的序列屏障。
  * <p>Tracks the event processor instance, the event handler instance, and sequence barrier which the stage is attached to.</p>
  *
  * @param <T> the type of the configured {@link EventHandler}
  */
 class EventProcessorInfo<T> implements ConsumerInfo
 {
+    /**
+     * 事件处理器
+     */
     private final EventProcessor eventprocessor;
+    /**
+     * 消费者
+     */
     private final EventHandler<? super T> handler;
+    /**
+     * 序号栅栏
+     */
     private final SequenceBarrier barrier;
+    /**
+     * 是否结束链
+     */
     private boolean endOfChain = true;
 
     EventProcessorInfo(

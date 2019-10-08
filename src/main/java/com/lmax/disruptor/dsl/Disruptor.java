@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * <p>A DSL-style API for setting up the disruptor pattern around a ring buffer
  * (aka the Builder pattern).</p>
- *
+ *用于围绕环形缓冲区设置干扰器模式的dsl样式的API(又称生成器模式)。
  * <p>A simple example of setting up the disruptor with two event handlers that
  * must process events in order:</p>
  * <pre>
@@ -58,10 +58,25 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Disruptor<T>
 {
+    /**
+     * ringBuffer 环形缓存区
+     */
     private final RingBuffer<T> ringBuffer;
+    /**
+     * 线程池
+     */
     private final Executor executor;
+    /**
+     * 事件处理器和消费者关联仓库
+     */
     private final ConsumerRepository<T> consumerRepository = new ConsumerRepository<>();
+    /**
+     * 是否启动
+     */
     private final AtomicBoolean started = new AtomicBoolean(false);
+    /**
+     * 异常处理器
+     */
     private ExceptionHandler<? super T> exceptionHandler = new ExceptionHandlerWrapper<>();
 
     /**
@@ -105,12 +120,13 @@ public class Disruptor<T>
     }
 
     /**
+     * 默认阻塞等待策略
      * Create a new Disruptor. Will default to {@link com.lmax.disruptor.BlockingWaitStrategy} and
      * {@link ProducerType}.MULTI
      *
-     * @param eventFactory   the factory to create events in the ring buffer.
-     * @param ringBufferSize the size of the ring buffer.
-     * @param threadFactory  a {@link ThreadFactory} to create threads to for processors.
+     * @param eventFactory   the factory to create events in the ring buffer. 创建事件在ring buffer中
+     * @param ringBufferSize the size of the ring buffer.ring buffer的大小
+     * @param threadFactory  a {@link ThreadFactory} to create threads to for processors.为处理器创建线程
      */
     public Disruptor(final EventFactory<T> eventFactory, final int ringBufferSize, final ThreadFactory threadFactory)
     {
@@ -119,7 +135,7 @@ public class Disruptor<T>
 
     /**
      * Create a new Disruptor.
-     *
+     * 创建一个新的Disruptor
      * @param eventFactory   the factory to create events in the ring buffer.
      * @param ringBufferSize the size of the ring buffer, must be power of 2.
      * @param threadFactory  a {@link ThreadFactory} to create threads for processors.
@@ -148,6 +164,7 @@ public class Disruptor<T>
     }
 
     /**
+     * 启动消费者
      * <p>Set up event handlers to handle events from the ring buffer. These handlers will process events
      * as soon as they become available, in parallel.</p>
      *
@@ -164,6 +181,7 @@ public class Disruptor<T>
     @SafeVarargs
     public final EventHandlerGroup<T> handleEventsWith(final EventHandler<? super T>... handlers)
     {
+        //创建事件处理器
         return createEventProcessors(new Sequence[0], handlers);
     }
 
@@ -535,31 +553,44 @@ public class Disruptor<T>
         return consumerRepository.hasBacklog(cursor, false);
     }
 
+    /**
+     * 创建事件处理器集合
+     * @param barrierSequences 序号数组
+     * @param eventHandlers 消费者集合
+     * @return 消费者组
+     */
     EventHandlerGroup<T> createEventProcessors(
         final Sequence[] barrierSequences,
         final EventHandler<? super T>[] eventHandlers)
     {
+        //检查是否没有启动，保证没有启动添加监听
         checkNotStarted();
 
+        //得到处理器序号数组
         final Sequence[] processorSequences = new Sequence[eventHandlers.length];
+        //得到新的序号栅栏
         final SequenceBarrier barrier = ringBuffer.newBarrier(barrierSequences);
 
+        //遍历消费者集合
         for (int i = 0, eventHandlersLength = eventHandlers.length; i < eventHandlersLength; i++)
         {
+            //赋值
             final EventHandler<? super T> eventHandler = eventHandlers[i];
 
+            //创建批量事件处理器
             final BatchEventProcessor<T> batchEventProcessor =
                 new BatchEventProcessor<>(ringBuffer, barrier, eventHandler);
-
+            //如果异常处理器不为空，设置异常处理器
             if (exceptionHandler != null)
             {
                 batchEventProcessor.setExceptionHandler(exceptionHandler);
             }
-
+            //添存储库中
             consumerRepository.add(batchEventProcessor, eventHandler, barrier);
+            //设置处理器序号
             processorSequences[i] = batchEventProcessor.getSequence();
         }
-
+        //新下一个链的门控序列
         updateGatingSequencesForNextInChain(barrierSequences, processorSequences);
 
         return new EventHandlerGroup<>(this, consumerRepository, processorSequences);
@@ -567,8 +598,10 @@ public class Disruptor<T>
 
     private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequences, final Sequence[] processorSequences)
     {
+        //如果处理器序号大于0
         if (processorSequences.length > 0)
         {
+            //设置ringBuffer序号
             ringBuffer.addGatingSequences(processorSequences);
             for (final Sequence barrierSequence : barrierSequences)
             {
@@ -578,6 +611,12 @@ public class Disruptor<T>
         }
     }
 
+    /**
+     * 创建事件处理器
+     * @param barrierSequences
+     * @param processorFactories
+     * @return
+     */
     EventHandlerGroup<T> createEventProcessors(
         final Sequence[] barrierSequences, final EventProcessorFactory<T>[] processorFactories)
     {
@@ -590,6 +629,12 @@ public class Disruptor<T>
         return handleEventsWith(eventProcessors);
     }
 
+    /**
+     * 创建工作池
+     * @param barrierSequences
+     * @param workHandlers
+     * @return
+     */
     EventHandlerGroup<T> createWorkerPool(
         final Sequence[] barrierSequences, final WorkHandler<? super T>[] workHandlers)
     {
@@ -614,6 +659,7 @@ public class Disruptor<T>
         }
     }
 
+    //是否多次启动
     private void checkOnlyStartedOnce()
     {
         if (!started.compareAndSet(false, true))

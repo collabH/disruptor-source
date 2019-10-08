@@ -21,6 +21,7 @@ import com.lmax.disruptor.util.Util;
 
 /**
  * 左边，在左边填充7个long类型，占7*8=56字节
+ * 用于缓存行填充，消除伪共享
  */
 class LhsPadding
 {
@@ -28,6 +29,7 @@ class LhsPadding
 }
 
 /**
+ * 计数的域
  * value就永远占用一个缓存行，因为最常见的缓存行大小为64个字节
  * 因此value左边+56个字节，在右边也加入56个字节，这样无论是左边还是右边最终都可以保证这个缓存行占64个字节，
  * 这样就可以消除伪共享(false shard)问题
@@ -46,6 +48,7 @@ class RhsPadding extends Value
 }
 
 /**
+ * 通过Unsafe保证原子性是环的真正序列(下标)
  * <p>Concurrent sequence class used for tracking the progress of
  * the ring buffer and event processors.  Support a number
  * of concurrent operations including CAS and order writes.

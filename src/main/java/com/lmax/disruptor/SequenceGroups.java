@@ -20,6 +20,7 @@ import static java.util.Arrays.copyOf;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
+ * 提供用于管理SequenceGroup对象的静态方法
  * Provides static methods for managing a {@link SequenceGroup} object.
  */
 class SequenceGroups

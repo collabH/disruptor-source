@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * Work模式下的消费者池。维护workSequence消费者处理的序列
  * WorkerPool contains a pool of {@link WorkProcessor}s that will consume sequences so jobs can be farmed out across a pool of workers.
  * Each of the {@link WorkProcessor}s manage and calls a {@link WorkHandler} to process the events.
  *
@@ -130,14 +131,18 @@ public final class WorkerPool<T>
      */
     public RingBuffer<T> start(final Executor executor)
     {
+        //是否启动过了
         if (!started.compareAndSet(false, true))
         {
             throw new IllegalStateException("WorkerPool has already been started and cannot be restarted until halted.");
         }
 
+        //得到当前ringBuffer游标
         final long cursor = ringBuffer.getCursor();
+        //设置为工作序号
         workSequence.set(cursor);
 
+        //循环设置，异步启动
         for (WorkProcessor<?> processor : workProcessors)
         {
             processor.getSequence().set(cursor);

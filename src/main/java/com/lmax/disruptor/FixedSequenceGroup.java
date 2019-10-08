@@ -20,6 +20,7 @@ import java.util.Arrays;
 import com.lmax.disruptor.util.Util;
 
 /**
+ * 在单个序列后面隐藏一组序列
  * Hides a group of Sequences behind a single Sequence
  */
 public final class FixedSequenceGroup extends Sequence

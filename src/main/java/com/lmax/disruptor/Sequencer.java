@@ -17,25 +17,27 @@ package com.lmax.disruptor;
 
 /**
  * Coordinates claiming sequences for access to a data structure while tracking dependent {@link Sequence}s
+ * 声明访问的序列对序列进行操作
  */
 public interface Sequencer extends Cursored, Sequenced
 {
     /**
      * Set to -1 as sequence starting point
+     * 初始化游标位置
      */
     long INITIAL_CURSOR_VALUE = -1L;
 
     /**
      * Claim a specific sequence.  Only used if initialising the ring buffer to
      * a specific value.
-     *
-     * @param sequence The sequence to initialise too.
+     *声明一个特定的序列。仅在初始化环形缓冲区时使用一个特定的值。
+     * @param sequence The sequence to initialise too.序列也要初始化。
      */
     void claim(long sequence);
 
     /**
      * Confirms if a sequence is published and the event is available for use; non-blocking.
-     *
+     * 确认序列是否已发布，事件是否可用;非阻塞。
      * @param sequence of the buffer to check
      * @return true if the sequence is available for use, false if not
      */
@@ -45,7 +47,7 @@ public interface Sequencer extends Cursored, Sequenced
      * Add the specified gating sequences to this instance of the Disruptor.  They will
      * safely and atomically added to the list of gating sequences.
      *
-     * 将指定的门控序列添加到干扰器的此实例中。他们将安全原子地添加到门控序列列表。
+     * 添加追踪序列:消费者处理到的序列对象
      * @param gatingSequences The sequences to add.
      */
     void addGatingSequences(Sequence... gatingSequences);
@@ -61,7 +63,7 @@ public interface Sequencer extends Cursored, Sequenced
     /**
      * Create a new SequenceBarrier to be used by an EventProcessor to track which messages
      * are available to be read from the ring buffer given a list of sequences to track.
-     *
+     * 创建一个新的SequenceBarrier，以便事件处理器跟踪哪些消息可从环形缓冲区读取给定要跟踪的序列列表。
      * @param sequencesToTrack All of the sequences that the newly constructed barrier will wait on.
      * @return A sequence barrier that will track the specified sequences.
      * @see SequenceBarrier

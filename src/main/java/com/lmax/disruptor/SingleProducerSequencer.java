@@ -32,6 +32,13 @@ abstract class SingleProducerSequencerPad extends AbstractSequencer
     }
 }
 
+/**
+ * 主要维护下面俩个变量
+ * 1.nextValue
+ * 生产者申请的下一个位置序列
+ * 2.cacheValue
+ * 消费者上次消费的消费序号
+ */
 abstract class SingleProducerSequencerFields extends SingleProducerSequencerPad
 {
     SingleProducerSequencerFields(int bufferSize, WaitStrategy waitStrategy)
@@ -49,17 +56,18 @@ abstract class SingleProducerSequencerFields extends SingleProducerSequencerPad
 }
 
 /**
+ *
  * <p>Coordinator for claiming sequences for access to a data structure while tracking dependent {@link Sequence}s.
  * Not safe for use from multiple threads as it does not implement any barriers.</p>
  *
  * <p>* Note on {@link Sequencer#getCursor()}:  With this sequencer the cursor value is updated after the call
  * to {@link Sequencer#publish(long)} is made.</p>
  */
-/**
- * 填充缓存行，消除伪共享
- */
 public final class SingleProducerSequencer extends SingleProducerSequencerFields
 {
+    /**
+     * 填充缓存行，消除伪共享
+     */
     protected long p1, p2, p3, p4, p5, p6, p7;
 
     /**

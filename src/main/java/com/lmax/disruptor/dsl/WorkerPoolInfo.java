@@ -4,8 +4,15 @@ import com.lmax.disruptor.*;
 
 import java.util.concurrent.Executor;
 
+/**
+ * 多生产者多消费者模型核心事件处理器实现类
+ * @param <T>
+ */
 class WorkerPoolInfo<T> implements ConsumerInfo
 {
+    /**
+     * 工作池
+     */
     private final WorkerPool<T> workerPool;
     private final SequenceBarrier sequenceBarrier;
     private boolean endOfChain = true;

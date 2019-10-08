@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import com.lmax.disruptor.util.Util;
 
 /**
+ * 管理消费者追踪序列和表示生产者当前序列
  * Base class for the various sequencer types (single/multi).  Provides
  * common functionality like the management of gating sequences (add/remove) and
  * ownership of the current cursor.
